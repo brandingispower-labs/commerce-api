@@ -1,0 +1,70 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Yarn 2+
+.yarn/*
+.yarn
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# Testing
+coverage
+
+# Next.js
+**/.next/
+**/out/
+
+# Production
+**/build
+**/dist
+
+# Misc
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+
+# Turbo
+.turbo
+.vscode
+
+# vercel
+.vercel
+
+# macOS system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+**/.DS_Store
+
+# ── 여기부터 과정 추가 (commerce-api) ──
+# pnpm 로컬 스토어
+.pnpm-store/
+
+# Medusa 빌드 산출물 (apps/backend/.gitignore 에도 있지만 루트에서도 막습니다)
+**/.medusa/
+
+# TypeScript 증분 빌드 정보
+*.tsbuildinfo
+
+# 로그
+*.log

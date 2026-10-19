@@ -1,0 +1,44 @@
+# compose.local.yaml — 로컬 개발 전용. 운영은 RDS PostgreSQL · ElastiCache 를 쓰며 BU13 이 만듭니다.
+# 실행: docker compose -f compose.local.yaml up -d
+name: commerce-api-local
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: commerce-api-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: medusa
+      POSTGRES_PASSWORD: medusa_local_password
+      POSTGRES_DB: commerce
+      # 인코딩만 UTF8 로 고정합니다. 로캘은 이미지 기본값을 그대로 씁니다 —
+      # 운영(RDS)의 값은 이 문서에서 확인하지 않았고, 맞추는 일은 BU13 이 맡습니다.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      # 127.0.0.1 에만 바인딩합니다. 0.0.0.0 으로 열면 같은 네트워크의 다른 기기가 붙을 수 있습니다.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medusa -d commerce"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: commerce-api-redis
+    restart: unless-stopped
+    # 로컬에서는 디스크 영속화가 필요 없습니다. RDB · AOF 를 모두 끕니다.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  postgres-data:
+    name: commerce-api-postgres-data

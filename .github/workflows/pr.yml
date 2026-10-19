@@ -1,0 +1,39 @@
+# .github/workflows/pr.yml — commerce-api
+# PR 검사 전용입니다. permissions 가 contents: read 하나뿐이라 OIDC 토큰을 받을 수 없고,
+# 따라서 AWS · ECR · 클러스터에 닿을 수 없습니다. 이미지는 빌드만 하고 push 하지 않습니다.
+# 통합 테스트(test:integration:http)는 Postgres · Redis 가 필요하고 아직 테스트 파일이 없으므로
+# 여기서는 lint 와 이미지 빌드까지만 합니다. 통합 테스트는 뒤 BU 문서에서 붙입니다.
+name: pr
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: lint
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo node:22-alpine sh -euc '
+            corepack enable
+            pnpm install --frozen-lockfile
+            pnpm --filter @dtc/backend lint
+          '
+  image:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: docker build only
+        run: docker build -t "commerce-api:pr-${{ github.event.pull_request.number }}" .
